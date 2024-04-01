@@ -11,14 +11,20 @@ repositories {
 }
 
 dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    testImplementation 'junit:junit:4.13.2'
 
+    implementation 'com.github.javaparser:javaparser-core:3.25.0'
+    implementation 'com.github.javaparser:javaparser-symbol-solver-core:3.25.0'
+
+    implementation 'com.google.code.gson:gson:2.10.1'
 }
 
 java {
     sourceCompatibility = '17'
 }
 
-tasks.named('test') {
+test {
     useJUnitPlatform()
 }
 
