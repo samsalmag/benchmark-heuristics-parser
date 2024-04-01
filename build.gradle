@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.samsalek'
+version = '0.0.1-SNAPSHOT'
+description = 'Benchmark heuristics parser'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+}
+
+java {
+    sourceCompatibility = '17'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+tasks.withType(Javadoc) {
+    options.encoding = 'UTF-8'
+}
