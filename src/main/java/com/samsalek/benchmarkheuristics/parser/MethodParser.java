@@ -36,7 +36,7 @@ public class MethodParser {
     private final CombinedTypeSolver TYPE_SOLVER;
     private final JavaParserAdapter PARSER;
 
-    private final int maxDepth;           // Maximum recursion depth
+    private final int maxDepth;           // Maximum recursion depth. Default is at most 1000 recursions if no other value is provided.
     private final String baseMainPath;
     private final String baseTestPath;
     private final String projectTerm;     // This is used to figure out of method is within source code or a java lib.
@@ -64,9 +64,15 @@ public class MethodParser {
         PARSER = JavaParserAdapter.of(new JavaParser(PARSER_CONFIG));
     }
 
-
     public MethodParser(int maxDepth, String baseMainPath, String baseTestPath, String projectTerm) {
         this(maxDepth, baseMainPath, baseTestPath, projectTerm,
+                new File(baseMainPath).getAbsoluteFile(),
+                new File(baseTestPath).getAbsoluteFile());
+    }
+
+    public MethodParser(String baseMainPath, String baseTestPath, String projectTerm) {
+        // Defaults to at most 1000 recursions.
+        this(1000, baseMainPath, baseTestPath, projectTerm,
                 new File(baseMainPath).getAbsoluteFile(),
                 new File(baseTestPath).getAbsoluteFile());
     }
