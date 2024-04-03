@@ -71,8 +71,7 @@ public class BenchmarkParser {
                 iterationIndex += 1;
 
                 String benchmark = benchmarkMap.get(i).getKey();
-                int lastIndex = benchmark.lastIndexOf('_');
-                String method = benchmark.substring(lastIndex + 1);
+                String method = benchmark.split("_Benchmark.benchmark_")[1];
 
                 int secondLastDotIndex = benchmark.lastIndexOf('.', benchmark.lastIndexOf('.') - 1);
                 // Get the class path, each directory is currently separated by dots so have to use paths library to resolve path
