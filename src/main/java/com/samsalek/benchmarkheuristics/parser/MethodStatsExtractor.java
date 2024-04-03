@@ -10,12 +10,12 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * Class that takes in a method of type MethodDeclaration and returns a Map<String, Integer> of method stats.
+ * Class that takes in a method of type MethodDeclaration and returns a {@code Map<String, Integer>} of method stats.
  * E.g. stats: number of loops, number of conditionals, etc.
  *
  * Example usage:
- * Map<String, Integer> stats = MethodStatsExtractor.getStats(method);
- * System.out.println(stats);
+ * {@code Map<String, Integer> stats = MethodStatsExtractor.getStats(method);}
+ * {@code System.out.println(stats);}
  *
  * @author Malte Åkvist
  */

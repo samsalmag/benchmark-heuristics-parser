@@ -18,7 +18,7 @@ import java.nio.file.Paths;
 /**
  * Class that uses method and package name of the benchmarks in a benchmarkDict json file to
  * parse them (extracts stats, e.g. nested loops) and generates a new json file containing the results.
- * The structure of the read json file is a list of Pair<String, Double>, where String is the full
+ * The structure of the read json file is a list of {@code Pair<String, Double>}, where String is the full
  * benchmark name, and Double is the metric value for a property of the benchmark.
  *
  * @author Malte Åkvist
