@@ -66,7 +66,7 @@ public class MethodStatsExtractor {
      */
     public static int countLoops(MethodDeclaration method) {
         List<Node> loops = method.findAll(Node.class, n ->
-                n instanceof ForStmt || n instanceof WhileStmt || n instanceof DoStmt);
+                n instanceof ForStmt || n instanceof ForEachStmt || n instanceof WhileStmt || n instanceof DoStmt);
         return loops.size();
     }
 
@@ -139,8 +139,6 @@ public class MethodStatsExtractor {
         return count;
     }
 
-
-    // Check if java comment
     private static boolean isJavaComment(String line) {
         // Regex to match Java comments (single-line and multi-line)
         String regex = "(//.*$)|(/\\*.*\\*/)";
