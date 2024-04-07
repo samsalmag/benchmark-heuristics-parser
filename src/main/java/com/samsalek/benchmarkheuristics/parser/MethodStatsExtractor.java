@@ -86,7 +86,7 @@ public class MethodStatsExtractor {
         int maxDepth = depth;
         for (Node child : node.getChildNodes()) {
             int childDepth;
-            if (child instanceof ForStmt || child instanceof WhileStmt || child instanceof DoStmt) {
+            if (child instanceof ForStmt || child instanceof ForEachStmt || child instanceof WhileStmt || child instanceof DoStmt) {
                 childDepth = calculateDepth(child, depth + 1);
             } else {
                 childDepth = calculateDepth(child, depth);
