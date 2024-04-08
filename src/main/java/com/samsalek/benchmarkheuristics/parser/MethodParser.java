@@ -206,20 +206,22 @@ public class MethodParser {
             throw new IllegalArgumentException("Depth exceeded max value.");
         }
 
+        MethodFeatureExtractor methodFeatureExtractor = new MethodFeatureExtractor(methodDeclaration);
+
         if (depth == 0) { // is JUnit test if depth is 0
-            parsedMethod.incrementLinesOfCodeJunitTest(MethodStatsExtractor.countLinesOfCode(methodDeclaration));
-            parsedMethod.incrementLogicalLinesOfCodeJunitTest(MethodStatsExtractor.countLogicalLinesOfCode(methodDeclaration));
+            parsedMethod.incrementLinesOfCodeJunitTest(methodFeatureExtractor.countLinesOfCode());
+            parsedMethod.incrementLogicalLinesOfCodeJunitTest(methodFeatureExtractor.countLogicalLinesOfCode());
         }
 
         // Find any object instantiations inside the method
         findObjectInstantiations(methodDeclaration);
 
         // Count stats of method
-        parsedMethod.incrementNumConditionals(MethodStatsExtractor.countConditionals(methodDeclaration));
-        parsedMethod.incrementNumLoops(MethodStatsExtractor.countLoops(methodDeclaration));
-        parsedMethod.incrementNumNestedLoops(MethodStatsExtractor.countNestedLoops(methodDeclaration));
-        parsedMethod.incrementLinesOfCode(MethodStatsExtractor.countLinesOfCode(methodDeclaration));
-        parsedMethod.incrementLogicalLinesOfCode(MethodStatsExtractor.countLogicalLinesOfCode(methodDeclaration));
+        parsedMethod.incrementNumConditionals(methodFeatureExtractor.countConditionals());
+        parsedMethod.incrementNumLoops(methodFeatureExtractor.countLoops());
+        parsedMethod.incrementNumNestedLoops(methodFeatureExtractor.countNestedLoops());
+        parsedMethod.incrementLinesOfCode(methodFeatureExtractor.countLinesOfCode());
+        parsedMethod.incrementLogicalLinesOfCode(methodFeatureExtractor.countLogicalLinesOfCode());
 
         // Loop through all method calls in the provided methodDeclaration variable.
         List<MethodCallExpr> methodCallExprList = methodDeclaration.findAll(MethodCallExpr.class);
