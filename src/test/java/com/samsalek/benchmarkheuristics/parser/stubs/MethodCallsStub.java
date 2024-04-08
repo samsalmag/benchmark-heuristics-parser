@@ -1,7 +1,5 @@
 package com.samsalek.benchmarkheuristics.parser.stubs;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 
 public class MethodCallsStub {
