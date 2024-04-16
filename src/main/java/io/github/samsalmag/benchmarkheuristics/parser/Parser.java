@@ -47,7 +47,9 @@ public class Parser {
     private Map<String, Integer> objectInstantiations = new HashMap<>();
     private Map<String, Integer> packageAccesses = new HashMap<>();
 
-    private boolean runComplete;
+    private boolean parsingComplete;
+    private boolean parsingSuccessful;
+    private Exception thrownException;
 
     public Parser(int maxDepth, String baseMainPath, String baseTestPath, String projectTerm, File... typeSolverPaths) {
         this.maxDepth = maxDepth;
@@ -107,6 +109,8 @@ public class Parser {
             parseMethod(startMethod, 0);
         }
         catch (Exception e) {
+            parsingSuccessful = false;
+            thrownException = e;
             return null;
         }
 
@@ -115,7 +119,8 @@ public class Parser {
         parsedMethod.setObjectInstantiations(new HashMap<>(objectInstantiations));
         parsedMethod.setPackageAccesses(new HashMap<>(packageAccesses));
 
-        runComplete = true;
+        parsingComplete = true;
+        parsingSuccessful = true;
 
         if (debug) {
             System.out.println("\n" + sortMapOutOfPlace(methodCalls));
@@ -134,7 +139,8 @@ public class Parser {
         this.methodCalls = new HashMap<>();
         this.objectInstantiations = new HashMap<>();
         this.packageAccesses = new HashMap<>();
-        runComplete = false;
+        parsingComplete = false;
+        parsingSuccessful = false;
     }
 
     /**
@@ -253,7 +259,7 @@ public class Parser {
                 // Check if the called method is located in a RxJava package.
                 // If true, get full path for the class that holds the called method. Then create a new compilation unit that parses that path.
                 // The parser finds and provides us the method declaration for the called method.
-                if (reflectionMethodDeclaration.toString().contains(projectTerm)) {
+                if (reflectionMethodDeclaration.toString().contains(projectTerm) && !projectTerm.equals("")) {
                     String packageName = reflectionMethodDeclaration.getPackageName();
                     String className = reflectionMethodDeclaration.getClassName();
 
@@ -307,7 +313,10 @@ public class Parser {
     }
 
     public ParsedMethod getParsedMethod() {
-        if (!runComplete) throw new IllegalStateException("ERROR: Method parsing not complete yet! Use MethodParser.parse() first or wait for parsing to complete.");
+        if (!parsingComplete) {
+            if (!parsingSuccessful) throw new IllegalStateException("ERROR: The parsing failed and threw and exception! Exception: " + thrownException.getMessage());
+            else throw new IllegalStateException("ERROR: The parsing has not been performed or is not complete yet!");
+        }
         return parsedMethod;
     }
 }

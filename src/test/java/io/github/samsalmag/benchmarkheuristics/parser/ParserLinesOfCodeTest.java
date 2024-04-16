@@ -17,7 +17,7 @@ public class ParserLinesOfCodeTest {
         parser = new Parser(Integer.MAX_VALUE,
                 "src\\main\\java\\",
                 "src\\test\\java\\",
-                "testing",
+                "",
                 new File("src\\main\\java"),
                 new File("src\\test\\java"));
 
