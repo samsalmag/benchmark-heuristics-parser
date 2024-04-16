@@ -5,10 +5,13 @@ import com.github.javaparser.JavaParserAdapter;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.type.PrimitiveType;
 import com.github.javaparser.resolution.declarations.ResolvedConstructorDeclaration;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
+import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserAnonymousClassDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
@@ -200,6 +203,37 @@ public class Parser {
     }
 
     /**
+     * Finds all non-primitive variable declarations within a method.
+     *
+     * @param methodDeclaration The method to search variable declarations in.
+     */
+    private void findNonPrimitiveVariableDeclarations(MethodDeclaration methodDeclaration) {
+        // Loop through all variable declarations...
+        List<VariableDeclarator> variableDeclaratorListList = methodDeclaration.findAll(VariableDeclarator.class);
+        for (VariableDeclarator variableDeclarator : variableDeclaratorListList) {
+
+            // Check if it is a non-primitive type
+            if (!(variableDeclarator.getType() instanceof PrimitiveType)) {
+                ResolvedType resolvedType = variableDeclarator.getType().resolve();
+                if (!resolvedType.isPrimitive()) {
+                    String qualifiedName = resolvedType.asReferenceType().getQualifiedName();
+                    String packageName;
+
+                    int lastDotIndex = qualifiedName.lastIndexOf('.');
+                    if (lastDotIndex != -1) {
+                        packageName = qualifiedName.substring(0, lastDotIndex);
+                    }
+                    else {
+                        packageName = ""; // No package name (can it even happen?), return empty string
+                    }
+
+                    incrementMapValue(packageAccesses, packageName);
+                }
+            }
+        }
+    }
+
+    /**
      * Parses a MethodDeclaration. Collects all parsed data and stores it in a ParsedMethod instance.
      *
      * @param methodDeclaration The method to parse.
@@ -219,8 +253,8 @@ public class Parser {
             parsedMethod.incrementLogicalLinesOfCodeJunitTest(methodFeatureExtractor.countLogicalLinesOfCode());
         }
 
-        // Find any object instantiations inside the method
-        findObjectInstantiations(methodDeclaration);
+        findObjectInstantiations(methodDeclaration);                // Find any object instantiations inside the method
+        findNonPrimitiveVariableDeclarations(methodDeclaration);    // Find any non-primitive variable declarations inside the method (used for package accesses)
 
         // Count stats of method
         parsedMethod.incrementNumConditionals(methodFeatureExtractor.countConditionals());
