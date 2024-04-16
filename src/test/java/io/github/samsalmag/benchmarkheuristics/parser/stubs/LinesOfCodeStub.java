@@ -1,4 +1,4 @@
-package com.samsalek.benchmarkheuristics.parser.stubs;
+package io.github.samsalmag.benchmarkheuristics.parser.stubs;
 
 import java.util.Collections;
 import java.util.List;

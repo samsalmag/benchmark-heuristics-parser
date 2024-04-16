@@ -1,4 +1,4 @@
-package com.samsalek.benchmarkheuristics.parser;
+package io.github.samsalmag.benchmarkheuristics.parser;
 
 import java.util.HashMap;
 import java.util.Map;

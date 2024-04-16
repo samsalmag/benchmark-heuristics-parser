@@ -1,9 +1,9 @@
-package com.samsalek.benchmarkheuristics.parser;
+package io.github.samsalmag.benchmarkheuristics.parser;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.samsalek.benchmarkheuristics.parser.json.JsonCreator;
-import com.samsalek.benchmarkheuristics.parser.json.JsonMethodItem;
+import io.github.samsalmag.benchmarkheuristics.parser.json.JsonCreator;
+import io.github.samsalmag.benchmarkheuristics.parser.json.JsonMethodItem;
 
 import java.io.File;
 import java.io.FileReader;
@@ -40,7 +40,7 @@ public class BenchmarkParser {
             }));
     }
 
-    public void parseBenchmarks(MethodParser parser, String outputPath) {
+    public void parseBenchmarks(Parser parser, String outputPath) {
         parseBenchmarks(parser, 0, benchmarkMap.size() - 1, outputPath);
     }
 
@@ -52,7 +52,7 @@ public class BenchmarkParser {
      * @param lastBenchmarkIndex Index of the last benchmark to parse.
      * @param outputPath Where to output the parsed benchmarks.
      */
-    public void parseBenchmarks(MethodParser parser, int firstBenchmarkIndex, int lastBenchmarkIndex, String outputPath) {
+    public void parseBenchmarks(Parser parser, int firstBenchmarkIndex, int lastBenchmarkIndex, String outputPath) {
         // Check so indexes are in range, correct them if they are not
         if (firstBenchmarkIndex < 0) firstBenchmarkIndex = 0;
         if (lastBenchmarkIndex > benchmarkMap.size() - 1) lastBenchmarkIndex = benchmarkMap.size() - 1;
@@ -87,7 +87,7 @@ public class BenchmarkParser {
                 System.out.println(method);
                 System.out.println("PARSING INDEX: " + (iterationIndex) + "/" + (lastBenchmarkIndex - firstBenchmarkIndex + 1));
 
-                ParsedMethod parsedMethod = parser.parse(benchmarkPath.toString(), method);
+                ParsedMethod parsedMethod = parser.parseMethod(benchmarkPath.toString(), method);
                 if (parsedMethod == null) {
                     System.out.println("*** EXCEPTION! SKIPPING BENCHMARK *** \n");
                     continue;

@@ -1,4 +1,4 @@
-package com.samsalek.benchmarkheuristics.parser.json;
+package io.github.samsalmag.benchmarkheuristics.parser.json;
 
 import com.google.gson.*;
 

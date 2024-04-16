@@ -1,4 +1,4 @@
-package com.samsalek.benchmarkheuristics.parser;
+package io.github.samsalmag.benchmarkheuristics.parser;
 
 import com.github.javaparser.JavaParser;
 import com.github.javaparser.JavaParserAdapter;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  *
  * @author Sam Salek
  */
-public class MethodParser {
+public class Parser {
 
     private final boolean debug = false;    // Display debug prints.
 
@@ -49,7 +49,7 @@ public class MethodParser {
 
     private boolean runComplete;
 
-    public MethodParser(int maxDepth, String baseMainPath, String baseTestPath, String projectTerm, File... typeSolverPaths) {
+    public Parser(int maxDepth, String baseMainPath, String baseTestPath, String projectTerm, File... typeSolverPaths) {
         this.maxDepth = maxDepth;
         this.baseMainPath = baseMainPath;
         this.baseTestPath = baseTestPath;
@@ -64,13 +64,13 @@ public class MethodParser {
         PARSER = JavaParserAdapter.of(new JavaParser(PARSER_CONFIG));
     }
 
-    public MethodParser(int maxDepth, String baseMainPath, String baseTestPath, String projectTerm) {
+    public Parser(int maxDepth, String baseMainPath, String baseTestPath, String projectTerm) {
         this(maxDepth, baseMainPath, baseTestPath, projectTerm,
                 new File(baseMainPath).getAbsoluteFile(),
                 new File(baseTestPath).getAbsoluteFile());
     }
 
-    public MethodParser(String baseMainPath, String baseTestPath, String projectTerm) {
+    public Parser(String baseMainPath, String baseTestPath, String projectTerm) {
         // Defaults to at most 1000 recursions.
         this(1000, baseMainPath, baseTestPath, projectTerm,
                 new File(baseMainPath).getAbsoluteFile(),
@@ -85,7 +85,7 @@ public class MethodParser {
      * @return If successful, a ParsedMethod instance with all the parsed data.
      *         Returns null if an exception was thrown during parsing.
      */
-    public ParsedMethod parse(String filePath, String methodName) {
+    public ParsedMethod parseMethod(String filePath, String methodName) {
         reset();
 
         // Add to ParsedMethod
@@ -194,7 +194,7 @@ public class MethodParser {
     }
 
     /**
-     * Parses a method. Collects all parsed data and stores it in a ParsedMethod instance.
+     * Parses a MethodDeclaration. Collects all parsed data and stores it in a ParsedMethod instance.
      *
      * @param methodDeclaration The method to parse.
      * @param depth The current depth of the parsing, since this method can be used recursively.

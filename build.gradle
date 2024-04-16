@@ -3,7 +3,7 @@ plugins {
     id 'maven-publish'
 }
 
-group = 'com.samsalek'
+group = 'io.github.samsalmag'
 version = '0.0.1-SNAPSHOT'
 description = 'Benchmark heuristics parser'
 
@@ -33,7 +33,6 @@ test {
     useJUnitPlatform()
 }
 
-// Fixes bug for not correctly publishing to local Maven
 publishing {
     publications {
         mavenJava(MavenPublication) {

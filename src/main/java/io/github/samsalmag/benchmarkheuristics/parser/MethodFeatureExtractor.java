@@ -1,4 +1,4 @@
-package com.samsalek.benchmarkheuristics.parser;
+package io.github.samsalmag.benchmarkheuristics.parser;
 
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.stmt.*;

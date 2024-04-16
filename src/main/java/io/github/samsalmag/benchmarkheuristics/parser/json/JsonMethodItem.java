@@ -1,7 +1,7 @@
-package com.samsalek.benchmarkheuristics.parser.json;
+package io.github.samsalmag.benchmarkheuristics.parser.json;
 
 import com.google.gson.annotations.SerializedName;
-import com.samsalek.benchmarkheuristics.parser.ParsedMethod;
+import io.github.samsalmag.benchmarkheuristics.parser.ParsedMethod;
 
 /**
  * A method item in a json file. Correctly structures the data from a ParsedMethod to be used in a json file.

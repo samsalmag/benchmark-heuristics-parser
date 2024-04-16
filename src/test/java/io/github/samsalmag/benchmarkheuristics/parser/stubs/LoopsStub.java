@@ -1,18 +1,28 @@
-package com.samsalek.benchmarkheuristics.parser.stubs;
+package io.github.samsalmag.benchmarkheuristics.parser.stubs;
 
-public class NestedLoopsStub {
+public class LoopsStub {
 
     public void empty() { }
 
     // region For
 
-    public void oneNestedLoop_for_1() {
+    public void oneLoop_for() {
+        for (int i = 0; i < 1; i++) { }
+    }
+
+    public void twoLoop_for_1() {
+        for (int i = 0; i < 1; i++) { }
+
+        for (int j = 0; j < 1; j++) { }
+    }
+
+    public void twoLoop_for_2() {
         for (int i = 0; i < 1; i++) {
             for (int j = 0; j < 1; j++) { }
         }
     }
 
-    public void oneNestedLoop_for_2() {
+    public void threeLoop_for_1() {
         for (int i = 0; i < 1; i++) {
             for (int j = 0; j < 1; j++) { }
 
@@ -20,7 +30,7 @@ public class NestedLoopsStub {
         }
     }
 
-    public void twoNestedLoop_for_1() {
+    public void threeLoop_for_2() {
         for (int i = 0; i < 1; i++) {
             for (int j = 0; j < 1; j++) {
                 for (int k = 0; k < 1; k++) { }
@@ -28,32 +38,20 @@ public class NestedLoopsStub {
         }
     }
 
-    public void twoNestedLoop_for_2() {
+    public void fourLoop_for_1() {
         for (int i = 0; i < 1; i++) {
-            for (int j = 0; j < 1; j++) {
-                for (int k = 0; k < 1; k++) { }
+            for (int j = 0; j < 1; j++) { }
 
-                for (int k = 0; k < 1; k++) { }
-            }
+            for (int j = 0; j < 1; j++) { }
+
+            for (int j = 0; j < 1; j++) { }
         }
     }
 
-    public void threeNestedLoop_for_1() {
+    public void fourLoop_for_2() {
         for (int i = 0; i < 1; i++) {
             for (int j = 0; j < 1; j++) {
                 for (int k = 0; k < 1; k++) {
-                    for (int l = 0; l < 1; l++) { }
-                }
-            }
-        }
-    }
-
-    public void threeNestedLoop_for_2() {
-        for (int i = 0; i < 1; i++) {
-            for (int j = 0; j < 1; j++) {
-                for (int k = 0; k < 1; k++) {
-                    for (int l = 0; l < 1; l++) { }
-
                     for (int l = 0; l < 1; l++) { }
                 }
             }
@@ -64,13 +62,23 @@ public class NestedLoopsStub {
 
     // region For-each
 
-    public void oneNestedLoop_foreach_1() {
+    public void oneLoop_foreach() {
+        for (int i : new int[]{}) { }
+    }
+
+    public void twoLoop_foreach_1() {
+        for (int i : new int[]{}) { }
+
+        for (int i : new int[]{}) { }
+    }
+
+    public void twoLoop_foreach_2() {
         for (int i : new int[]{}) {
             for (int j : new int[]{}) { }
         }
     }
 
-    public void oneNestedLoop_foreach_2() {
+    public void threeLoop_foreach_1() {
         for (int i : new int[]{}) {
             for (int j : new int[]{}) { }
 
@@ -78,7 +86,7 @@ public class NestedLoopsStub {
         }
     }
 
-    public void twoNestedLoop_foreach_1() {
+    public void threeLoop_foreach_2() {
         for (int i : new int[]{}) {
             for (int j : new int[]{}) {
                 for (int k : new int[]{}) { }
@@ -86,32 +94,20 @@ public class NestedLoopsStub {
         }
     }
 
-    public void twoNestedLoop_foreach_2() {
+    public void fourLoop_foreach_1() {
         for (int i : new int[]{}) {
-            for (int j : new int[]{}) {
-                for (int k : new int[]{}) { }
+            for (int j : new int[]{}) { }
 
-                for (int k : new int[]{}) { }
-            }
+            for (int j : new int[]{}) { }
+
+            for (int j : new int[]{}) { }
         }
     }
 
-    public void threeNestedLoop_foreach_1() {
+    public void fourLoop_foreach_2() {
         for (int i : new int[]{}) {
             for (int j : new int[]{}) {
                 for (int k : new int[]{}) {
-                    for (int l : new int[]{}) { }
-                }
-            }
-        }
-    }
-
-    public void threeNestedLoop_foreach_2() {
-        for (int i : new int[]{}) {
-            for (int j : new int[]{}) {
-                for (int k : new int[]{}) {
-                    for (int l : new int[]{}) { }
-
                     for (int l : new int[]{}) { }
                 }
             }
@@ -122,13 +118,27 @@ public class NestedLoopsStub {
 
     // region While
 
-    public void oneNestedLoop_while_1() {
+    public void oneLoop_while() {
+        while (true) { }
+    }
+
+    public void twoLoop_while_1() {
+        // Compile error if 'true' or 'false' is used directly in while-statement, because code becomes unreachable.
+        // Use variable to avoid error.
+        boolean bool = true;
+
+        while (bool) { }
+
+        while (bool) { }
+    }
+
+    public void twoLoop_while_2() {
         while (true) {
             while (true) { }
         }
     }
 
-    public void oneNestedLoop_while_2() {
+    public void threeLoop_while_1() {
         // Compile error if 'true' or 'false' is used directly in while-statement, because code becomes unreachable.
         // Use variable to avoid error.
         boolean bool = true;
@@ -140,7 +150,7 @@ public class NestedLoopsStub {
         }
     }
 
-    public void twoNestedLoop_while_1() {
+    public void threeLoop_while_2() {
         while (true) {
             while (true) {
                 while (true) { }
@@ -148,21 +158,21 @@ public class NestedLoopsStub {
         }
     }
 
-    public void twoNestedLoop_while_2() {
+    public void fourLoop_while_1() {
         // Compile error if 'true' or 'false' is used directly in while-statement, because code becomes unreachable.
         // Use variable to avoid error.
         boolean bool = true;
 
         while (true) {
-            while (true) {
-                while (bool) { }
+            while (bool) { }
 
-                while (bool) { }
-            }
+            while (bool) { }
+
+            while (bool) { }
         }
     }
 
-    public void threeNestedLoop_while_1() {
+    public void fourLoop_while_2() {
         while (true) {
             while (true) {
                 while (true) {
@@ -172,33 +182,31 @@ public class NestedLoopsStub {
         }
     }
 
-    public void threeNestedLoop_while_2() {
-        // Compile error if 'true' or 'false' is used directly in while-statement, because code becomes unreachable.
-        // Use variable to avoid error.
-        boolean bool = true;
-
-        while (true) {
-            while (true) {
-                while (true) {
-                    while (bool) { }
-
-                    while (bool) { }
-                }
-            }
-        }
-    }
-
     // endregion While
 
     // region Do-while
 
-    public void oneNestedLoop_dowhile_1() {
+    public void oneLoop_dowhile() {
+        do { } while (true);
+    }
+
+    public void twoLoop_dowhile_1() {
+        // Compile error if 'true' or 'false' is used directly in while-statement, because code becomes unreachable.
+        // Use variable to avoid error.
+        boolean bool = true;
+
+        do { } while (bool);
+
+        do { } while (bool);
+    }
+
+    public void twoLoop_dowhile_2() {
         do {
             do { } while (true);
         } while (true);
     }
 
-    public void oneNestedLoop_dowhile_2() {
+    public void threeLoop_dowhile_1() {
         // Compile error if 'true' or 'false' is used directly in while-statement, because code becomes unreachable.
         // Use variable to avoid error.
         boolean bool = true;
@@ -210,7 +218,7 @@ public class NestedLoopsStub {
         } while (true);
     }
 
-    public void twoNestedLoop_dowhile_1() {
+    public void threeLoop_dowhile_2() {
         do {
             do {
                 do { } while (true);
@@ -218,41 +226,25 @@ public class NestedLoopsStub {
         } while (true);
     }
 
-    public void twoNestedLoop_dowhile_2() {
+    public void fourLoop_dowhile_1() {
         // Compile error if 'true' or 'false' is used directly in while-statement, because code becomes unreachable.
         // Use variable to avoid error.
         boolean bool = true;
 
         do {
-            do {
-                do { } while (bool);
+            do { } while (bool);
 
-                do { } while (bool);
-            } while (true);
+            do { } while (bool);
+
+            do { } while (bool);
         } while (true);
     }
 
-    public void threeNestedLoop_dowhile_1() {
+    public void fourLoop_dowhile_2() {
         do {
             do {
                 do {
                     do { } while (true);
-                } while (true);
-            } while (true);
-        } while (true);
-    }
-
-    public void threeNestedLoop_dowhile_2() {
-        // Compile error if 'true' or 'false' is used directly in while-statement, because code becomes unreachable.
-        // Use variable to avoid error.
-        boolean bool = true;
-
-        do {
-            do {
-                do {
-                    do { } while (bool);
-
-                    do { } while (bool);
                 } while (true);
             } while (true);
         } while (true);
