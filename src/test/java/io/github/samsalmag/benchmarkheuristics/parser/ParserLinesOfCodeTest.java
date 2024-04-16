@@ -7,7 +7,7 @@ import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class LinesOfCodeTest {
+public class ParserLinesOfCodeTest {
 
     private static Parser parser;
     private static String stubPath;

@@ -7,7 +7,7 @@ import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class MethodParserNestedLoopsTest {
+public class ParserNestedLoopsTest {
 
     private static Parser parser;
     private static String stubPath;
