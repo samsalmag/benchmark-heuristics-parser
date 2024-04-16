@@ -27,7 +27,7 @@ public class ParserObjectInstantiationsTest {
     }
 
     @Test
-    public void objectInstantiationsTest_shouldBeZeroUniqueAndZeroToal() {
+    public void objectInstantiationsTest_shouldBeZeroUniqueAndZeroTotal() {
         String methodName = "empty";
         parser.parseMethod(stubPath, methodName);
 
