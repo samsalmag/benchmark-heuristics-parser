@@ -216,6 +216,10 @@ public class Parser {
             if (!(variableDeclarator.getType() instanceof PrimitiveType)) {
                 ResolvedType resolvedType = variableDeclarator.getType().resolve();
                 if (!resolvedType.isPrimitive()) {
+
+                    // Skip this type if it isn't a reference type (this is done to avoid exceptions from generic variable types)
+                    if (!resolvedType.isReferenceType()) continue;
+
                     String qualifiedName = resolvedType.asReferenceType().getQualifiedName();
                     String packageName;
 
@@ -352,5 +356,16 @@ public class Parser {
             else throw new IllegalStateException("ERROR: The parsing has not been performed or is not complete yet!");
         }
         return parsedMethod;
+    }
+
+    public void printException() {
+        if (thrownException == null) {
+            System.out.println("No exception has been thrown!");
+            return;
+        }
+
+        for (StackTraceElement stackTraceElement : thrownException.getStackTrace()) {
+            System.out.println(stackTraceElement.toString());
+        }
     }
 }
