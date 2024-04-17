@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.text.DecimalFormat;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,13 +59,13 @@ public class BenchmarkParser {
         if (lastBenchmarkIndex > benchmarkMap.size() - 1) lastBenchmarkIndex = benchmarkMap.size() - 1;
         if (lastBenchmarkIndex - firstBenchmarkIndex < 0) throw new IllegalArgumentException("Illegal index range.");
 
+        DecimalFormat decimalFormat = new DecimalFormat("0.00");    // Used to format success rate
         JsonCreator jsonCreator = new JsonCreator(outputPath);
         setupShutdownHook(jsonCreator);
         int successfulIndex = 0;
         int iterationIndex = 0;
 
-        // Empty first line, for clean print.
-        System.out.println();
+        System.out.println("\nSTARTING PARSING... \n");
 
         try {
             for (int i = firstBenchmarkIndex; i <= lastBenchmarkIndex; i++) {
@@ -100,8 +101,11 @@ public class BenchmarkParser {
                 jsonCreator.add(jsonMethodItem);
 
                 successfulIndex += 1;
-                System.out.println("SUCCESSFUL PARSINGS: " + successfulIndex + "/" + iterationIndex + "\n");
+                System.out.println("SUCCESSFUL PARSINGS: " + successfulIndex + "/" + iterationIndex +
+                                    ", SUCCESS RATE: " + decimalFormat.format((((double)successfulIndex)/iterationIndex) * 100) + "% \n");
             }
+
+            System.out.println("PARSING COMPLETE! \n");
         }
         finally {
             // Create json file even if there's an exception
