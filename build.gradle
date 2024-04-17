@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 group = 'io.github.samsalmag'
@@ -35,7 +36,11 @@ test {
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        jar(MavenPublication) {
+            from components.java
+        }
+
+        shadowJar(MavenPublication) {
             from components.java
         }
     }
