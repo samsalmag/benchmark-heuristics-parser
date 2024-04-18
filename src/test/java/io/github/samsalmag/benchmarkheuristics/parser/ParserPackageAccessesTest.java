@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,9 +19,11 @@ public class ParserPackageAccessesTest {
         parser = new Parser(Integer.MAX_VALUE,
                 "src\\main\\java\\",
                 "src\\test\\java\\",
-                "",
-                new File("src\\main\\java"),
-                new File("src\\test\\java"));
+                Arrays.asList(""),
+                Arrays.asList(
+                        new File("src\\main\\java"),
+                        new File("src\\test\\java")),
+                null);
 
         File stub = new File("src/test/java/io/github/samsalmag/benchmarkheuristics/parser/stubs/PackageAccessesStub.java");
         stubPath = stub.getAbsolutePath();
