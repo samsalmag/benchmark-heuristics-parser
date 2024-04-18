@@ -35,8 +35,6 @@ import java.util.stream.Collectors;
  */
 public class Parser {
 
-    private final boolean debug = false;    // Display debug prints.
-
     private final ParserConfiguration PARSER_CONFIG;
     private final CombinedTypeSolver TYPE_SOLVER;
     private final JavaParserAdapter PARSER;
@@ -171,7 +169,12 @@ public class Parser {
         }
         catch (Exception e) {
             parsingSuccessful = false;
-            thrownException = e;
+            thrownException = new ParserException(e);
+            return null;
+        }
+        catch (NoClassDefFoundError e) {
+            parsingSuccessful = false;
+            thrownException = new ParserException(e);
             return null;
         }
 
@@ -182,12 +185,6 @@ public class Parser {
 
         parsingComplete = true;
         parsingSuccessful = true;
-
-        if (debug) {
-            System.out.println("\n" + sortMapOutOfPlace(methodCalls));
-            System.out.println("\n" + sortMapOutOfPlace(objectInstantiations));
-            System.out.println("\n" + sortMapOutOfPlace(packageAccesses));
-        }
 
         return parsedMethod;
     }
@@ -239,7 +236,13 @@ public class Parser {
         List<ObjectCreationExpr> objectCreationExprList = methodDeclaration.findAll(ObjectCreationExpr.class);
         for (ObjectCreationExpr creationExpr : objectCreationExprList) {
 
-            ResolvedConstructorDeclaration resolvedConstructorDeclaration = creationExpr.resolve();
+            ResolvedConstructorDeclaration resolvedConstructorDeclaration;
+            try {
+                resolvedConstructorDeclaration = creationExpr.resolve();
+            }
+            catch (Exception | NoClassDefFoundError e) {
+                continue;
+            }
 
             String classPath;
             String packageName;
@@ -276,7 +279,13 @@ public class Parser {
             // Check if it is a non-primitive type
             if (!(variableDeclarator.getType() instanceof PrimitiveType)) {
 
-                ResolvedType resolvedType = variableDeclarator.getType().resolve();
+                ResolvedType resolvedType;
+                try {
+                    resolvedType = variableDeclarator.getType().resolve();
+                }
+                catch (Exception | NoClassDefFoundError e) {
+                    continue;
+                }
 
                 if (!resolvedType.isPrimitive()) {
 
@@ -335,7 +344,13 @@ public class Parser {
         for (MethodCallExpr callExpr : methodCallExprList) {
             boolean libFile = false;
 
-            ResolvedMethodDeclaration resolvedMethodDeclaration = callExpr.resolve();
+            ResolvedMethodDeclaration resolvedMethodDeclaration;
+            try {
+                resolvedMethodDeclaration = callExpr.resolve();
+            }
+            catch (Exception | NoClassDefFoundError e) {
+                continue;
+            }
 
             MethodDeclaration calledMethodDeclaration = null;
 
@@ -407,16 +422,9 @@ public class Parser {
 
             // Continue finding method calls recursively if the called method is not from a library.
             if (!libFile) {
-                if (debug) System.out.println("METHOD INVOCATION: " + resolvedMethodDeclaration.getQualifiedName());
                 parsedMethod.incrementNumRecursiveMethodCalls(1); // increase non java lib method call stats
                 parseMethod(calledMethodDeclaration, depth + 1);
             }
-            else {
-                if (debug) System.out.println("JAVA LIB FILE (STOPPING RECURSION): " + resolvedMethodDeclaration.getQualifiedName());
-            }
-
-            // Separate each recursion section, so it is easier to distinguish and read the debug print.
-            if (debug && depth == 0) System.out.println();
         }
     }
 
@@ -434,7 +442,7 @@ public class Parser {
             return;
         }
 
-        System.out.println(thrownException.getClass().getName() + ", " + thrownException.getMessage());
+        System.out.println(thrownException.getClassName() + ", " + thrownException.getMessage());
         for (StackTraceElement stackTraceElement : thrownException.getStackTrace()) {
             System.out.println(stackTraceElement.toString());
         }
