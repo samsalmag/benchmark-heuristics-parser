@@ -22,7 +22,8 @@ import java.nio.file.Paths;
  * The structure of the read json file is a list of {@code Pair<String, Double>}, where String is the full
  * benchmark name, and Double is the metric value for a property of the benchmark.
  *
- * @author Malte Åkvist
+ * @author Malte Åkvist (creator)
+ * @author Sam Salek (modified)
  */
 public class BenchmarkParser {
 
@@ -35,10 +36,7 @@ public class BenchmarkParser {
     }
 
     public void setupShutdownHook(JsonCreator jsonCreator) {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                jsonCreator.createJson();
-                System.out.println("Shutdown hook ran, created json file");
-            }));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> jsonCreator.createJson()));
     }
 
     public void parseBenchmarks(Parser parser, String outputPath) {
@@ -52,8 +50,10 @@ public class BenchmarkParser {
      * @param firstBenchmarkIndex Index of the first benchmark to parse
      * @param lastBenchmarkIndex Index of the last benchmark to parse.
      * @param outputPath Where to output the parsed benchmarks.
+     *
+     * @return Success rate of the parsing as a percentage (0.0 - 100.0) .
      */
-    public void parseBenchmarks(Parser parser, int firstBenchmarkIndex, int lastBenchmarkIndex, String outputPath) {
+    public double parseBenchmarks(Parser parser, int firstBenchmarkIndex, int lastBenchmarkIndex, String outputPath) {
         // Check so indexes are in range, correct them if they are not
         if (firstBenchmarkIndex < 0) firstBenchmarkIndex = 0;
         if (lastBenchmarkIndex > benchmarkMap.size() - 1) lastBenchmarkIndex = benchmarkMap.size() - 1;
@@ -64,6 +64,8 @@ public class BenchmarkParser {
         setupShutdownHook(jsonCreator);
         int successfulIndex = 0;
         int iterationIndex = 0;
+        double successRate = 0;
+        double successRatePercentage = 0;
 
         System.out.println("\nSTARTING PARSING... \n");
 
@@ -90,7 +92,9 @@ public class BenchmarkParser {
 
                 ParsedMethod parsedMethod = parser.parseMethod(benchmarkPath.toString(), method);
                 if (parsedMethod == null) {
-                    System.out.println("*** EXCEPTION! SKIPPING BENCHMARK *** \n");
+                    System.out.println("*** PARSING EXCEPTION! SKIPPING BENCHMARK! ***");
+                    System.out.println("SUCCESSFUL PARSINGS: " + successfulIndex + "/" + iterationIndex +
+                            ", SUCCESS RATE: " + successRatePercentage + "% \n");
                     continue;
                 }
 
@@ -101,11 +105,16 @@ public class BenchmarkParser {
                 jsonCreator.add(jsonMethodItem);
 
                 successfulIndex += 1;
+                successRate = ((double) successfulIndex) / iterationIndex;
+                successRatePercentage = Math.round(successRate * 10000.0) / 100.0;
                 System.out.println("SUCCESSFUL PARSINGS: " + successfulIndex + "/" + iterationIndex +
-                                    ", SUCCESS RATE: " + decimalFormat.format((((double)successfulIndex)/iterationIndex) * 100) + "% \n");
+                                    ", SUCCESS RATE: " + successRatePercentage + "% \n");
             }
 
-            System.out.println("PARSING COMPLETE! \n");
+            System.out.println("PARSING COMPLETE! " +
+                            "SUCCESS RATE: " + successfulIndex + "/" + iterationIndex +
+                            ", " + successRatePercentage + "% \n");
+            return successRatePercentage;
         }
         finally {
             // Create json file even if there's an exception
