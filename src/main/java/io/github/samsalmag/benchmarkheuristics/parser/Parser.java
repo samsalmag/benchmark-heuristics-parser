@@ -55,7 +55,10 @@ public class Parser {
 
     private boolean parsingComplete;
     private boolean parsingSuccessful;
-    private Exception thrownException;
+    private ParserException thrownException;
+
+    private long parsingStartTime;
+    private final long maxParsingTime = 60000000000L;  // 60 seconds
 
     /**
      * Creates a new Parser instance.
@@ -163,6 +166,7 @@ public class Parser {
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("ERROR: Method not found \"" + methodName + "\""));
 
+            parsingStartTime = System.nanoTime();
             parseMethod(startMethod, 0);
         }
         catch (Exception e) {
@@ -198,6 +202,7 @@ public class Parser {
         this.packageAccesses = new HashMap<>();
         parsingComplete = false;
         parsingSuccessful = false;
+        parsingStartTime = 0;
     }
 
     /**
@@ -303,10 +308,9 @@ public class Parser {
      *              Will not exceed MAX_DEPTH.
      */
     private void parseMethod(MethodDeclaration methodDeclaration, int depth) {
-        if (depth >= maxDepth) {
-            System.out.println("MAXIMUM DEPTH REACHED FOR METHOD \"" + methodDeclaration.getNameAsString() + "\"");
-            throw new IllegalArgumentException("Depth exceeded max value.");
-        }
+        // Do checks to see if it should continue parsing
+        if (depth >= maxDepth) return;
+        if ((System.nanoTime() - parsingStartTime) > maxParsingTime) throw new RuntimeException("Parsing exceeded maximum parsing time!");
 
         MethodFeatureExtractor methodFeatureExtractor = new MethodFeatureExtractor(methodDeclaration);
 
