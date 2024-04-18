@@ -15,8 +15,10 @@ import com.github.javaparser.resolution.types.ResolvedType;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserAnonymousClassDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.declarations.JavaParserMethodDeclaration;
+import com.github.javaparser.symbolsolver.javassistmodel.JavassistMethodDeclaration;
 import com.github.javaparser.symbolsolver.reflectionmodel.ReflectionMethodDeclaration;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver;
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JarTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver;
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
 
@@ -42,8 +44,9 @@ public class Parser {
     private final int maxDepth;           // Maximum recursion depth. Default is at most 1000 recursions if no other value is provided.
     private final String baseMainPath;
     private final String baseTestPath;
-    private final String projectTerm;     // This is used to figure out of method is within source code or a java lib.
-                                          // Should reflect a unique package name within the project, e.g., "rxjava" for project RxJava.
+    private final List<String> sourceCodePackagesPaths;     // This is used to figure out if method is within source code or a java lib.
+                                                            // Should reflect parts of unique package(s) path(s) within the project,
+                                                            // e.g., "rxjava" or "io.reactivex.rxjava3" for the RxJava project.
 
     private ParsedMethod parsedMethod;
     private Map<String, Integer> methodCalls = new HashMap<>();
@@ -54,32 +57,83 @@ public class Parser {
     private boolean parsingSuccessful;
     private Exception thrownException;
 
-    public Parser(int maxDepth, String baseMainPath, String baseTestPath, String projectTerm, File... typeSolverPaths) {
+    /**
+     * Creates a new Parser instance.
+     *
+     * @param maxDepth Max depth the parser should recursively parse.
+     * @param baseMainPath Path to main src root folder.
+     * @param baseTestPath Path to test src root folder.
+     * @param sourceCodePackagesPaths Parts of unique package(s) path(s) within the project, e.g., "rxjava" or "io.reactivex.rxjava3" for the RxJava project.
+     * @param srcCodeTypeSolverPaths List of File instances pointing to the src root folders to include in the type solver.
+     * @param jarFiles List of File instances pointing to .jar files to include in the type solver.
+     */
+    public Parser(int maxDepth, String baseMainPath, String baseTestPath, List<String> sourceCodePackagesPaths, List<File> srcCodeTypeSolverPaths, List<File> jarFiles) {
         this.maxDepth = maxDepth;
         this.baseMainPath = baseMainPath;
         this.baseTestPath = baseTestPath;
-        this.projectTerm = projectTerm;
+        this.sourceCodePackagesPaths = sourceCodePackagesPaths;
 
         TYPE_SOLVER = new CombinedTypeSolver();
         PARSER_CONFIG = new ParserConfiguration().setSymbolResolver(new JavaSymbolSolver(TYPE_SOLVER));
 
         TYPE_SOLVER.add(new ReflectionTypeSolver(false));
-        Arrays.stream(typeSolverPaths).forEach(t -> TYPE_SOLVER.add(new JavaParserTypeSolver(t, PARSER_CONFIG)));
+
+        // Create type solvers of source code paths
+        if (srcCodeTypeSolverPaths != null) {
+            srcCodeTypeSolverPaths.forEach(t -> TYPE_SOLVER.add(new JavaParserTypeSolver(t, PARSER_CONFIG)));
+        }
+
+        // Create type solvers of jars
+        if (jarFiles != null) {
+            jarFiles.forEach(f -> {
+                try {
+                    TYPE_SOLVER.add(new JarTypeSolver(f));
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
 
         PARSER = JavaParserAdapter.of(new JavaParser(PARSER_CONFIG));
     }
 
-    public Parser(int maxDepth, String baseMainPath, String baseTestPath, String projectTerm) {
-        this(maxDepth, baseMainPath, baseTestPath, projectTerm,
-                new File(baseMainPath).getAbsoluteFile(),
-                new File(baseTestPath).getAbsoluteFile());
+    /**
+     * Creates a new Parser instance.
+     *
+     * @param maxDepth Max depth the parser should recursively parse.
+     * @param baseMainPath Path to main src root folder.
+     * @param baseTestPath Path to test src root folder.
+     * @param sourceCodePackagesPaths Parts of unique package(s) path(s) within the project, e.g., "rxjava" or "io.reactivex.rxjava3" for the RxJava project.
+     */
+    public Parser(int maxDepth, String baseMainPath, String baseTestPath, List<String> sourceCodePackagesPaths) {
+        this(maxDepth,
+                baseMainPath,
+                baseTestPath,
+                sourceCodePackagesPaths,
+                Arrays.asList(
+                        new File(baseMainPath).getAbsoluteFile(),
+                        new File(baseTestPath).getAbsoluteFile()),
+                null);
     }
 
-    public Parser(String baseMainPath, String baseTestPath, String projectTerm) {
-        // Defaults to at most 1000 recursions.
-        this(1000, baseMainPath, baseTestPath, projectTerm,
-                new File(baseMainPath).getAbsoluteFile(),
-                new File(baseTestPath).getAbsoluteFile());
+    /**
+     * Creates a new Parser instance.
+     *
+     * @param maxDepth Max depth the parser should recursively parse.
+     * @param baseMainPath Path to main src root folder.
+     * @param baseTestPath Path to test src root folder.
+     * @param sourceCodePackagesPaths Parts of unique package(s) path(s) within the project, e.g., "rxjava" or "io.reactivex.rxjava3" for the RxJava project.
+     * @param jarsDirectoryPath Path to a directory containing .jar files to include in the type solver.
+     */
+    public Parser(int maxDepth, String baseMainPath, String baseTestPath, List<String> sourceCodePackagesPaths, String jarsDirectoryPath) {
+        this(maxDepth,
+                baseMainPath,
+                baseTestPath,
+                sourceCodePackagesPaths,
+                Arrays.asList(
+                        new File(baseMainPath).getAbsoluteFile(),
+                        new File(baseTestPath).getAbsoluteFile()),
+                JarFetcher.getDependencyJars(jarsDirectoryPath));
     }
 
     /**
@@ -179,7 +233,9 @@ public class Parser {
         // Loop through all object instantiations...
         List<ObjectCreationExpr> objectCreationExprList = methodDeclaration.findAll(ObjectCreationExpr.class);
         for (ObjectCreationExpr creationExpr : objectCreationExprList) {
+
             ResolvedConstructorDeclaration resolvedConstructorDeclaration = creationExpr.resolve();
+
             String classPath;
             String packageName;
 
@@ -214,7 +270,9 @@ public class Parser {
 
             // Check if it is a non-primitive type
             if (!(variableDeclarator.getType() instanceof PrimitiveType)) {
+
                 ResolvedType resolvedType = variableDeclarator.getType().resolve();
+
                 if (!resolvedType.isPrimitive()) {
 
                     // Skip this type if it isn't a reference type (this is done to avoid exceptions from generic variable types)
@@ -271,63 +329,71 @@ public class Parser {
         List<MethodCallExpr> methodCallExprList = methodDeclaration.findAll(MethodCallExpr.class);
         parsedMethod.incrementNumMethodCalls(methodCallExprList.size());  // Add stat to parsed method
         for (MethodCallExpr callExpr : methodCallExprList) {
-            boolean javaLibFile = false;
+            boolean libFile = false;
 
-            ResolvedMethodDeclaration resolvedMethodDeclaration = null;
-            try {
-                resolvedMethodDeclaration = callExpr.resolve();
-            }
-            catch (NoClassDefFoundError | Exception e) {
-                continue;
-            }
-
+            ResolvedMethodDeclaration resolvedMethodDeclaration = callExpr.resolve();
 
             MethodDeclaration calledMethodDeclaration = null;
+
             // If method call is from source code, we can get its method declaration directly.
             if (resolvedMethodDeclaration instanceof JavaParserMethodDeclaration) {
                 JavaParserMethodDeclaration javaParserMethodDeclaration = (JavaParserMethodDeclaration) resolvedMethodDeclaration;
                 calledMethodDeclaration = javaParserMethodDeclaration.getWrappedNode();
             }
 
-            // If the method call is from a library (such as JRE), we cannot get its method declaration directly.
-            // We need to jump through some hoops...
+            // If the method call is from a dependency jar without source code, we cannot get its method declaration (?)
+            // Set libFile to true
+            else if (resolvedMethodDeclaration instanceof JavassistMethodDeclaration) {
+                libFile = true;
+            }
+
+            // If the method call is from a library with source code (such as JRE),
+            // or sometimes from the project's source code as well (for some reason),
+            // then we cannot get its method declaration *directly*. We need to jump through some hoops to get it...
             else if (resolvedMethodDeclaration instanceof ReflectionMethodDeclaration) {
                 ReflectionMethodDeclaration reflectionMethodDeclaration = (ReflectionMethodDeclaration) resolvedMethodDeclaration;
 
-                // Check if the called method is located in a RxJava package.
-                // If true, get full path for the class that holds the called method. Then create a new compilation unit that parses that path.
-                // The parser finds and provides us the method declaration for the called method.
-                if (reflectionMethodDeclaration.toString().contains(projectTerm) && !projectTerm.equals("")) {
-                    String packageName = reflectionMethodDeclaration.getPackageName();
-                    String className = reflectionMethodDeclaration.getClassName();
+                // List of source code package paths must have at least one path
+                if (sourceCodePackagesPaths.isEmpty()) throw new IllegalArgumentException("List of source code packages paths must have at least one item!");
 
-                    // If there are dots in the class name, assume the last part is the nested class name and ignore it for the path
-                    String[] classNameParts = className.split("\\.");
-                    if (classNameParts.length > 1) {
-                        className = classNameParts[0]; // Use only the top-level class name
+                // Check for each source code package path
+                for (String packagePath : sourceCodePackagesPaths) {
+
+                    // Check if the called method is located in a source code package.
+                    // If true, get full path for the class that holds the called method. Then create a new compilation unit that parses that path.
+                    // The parser finds and provides us the method declaration for the called method.
+                    if (reflectionMethodDeclaration.toString().contains(packagePath) && !packagePath.equals("")) {
+                        String packageName = reflectionMethodDeclaration.getPackageName();
+                        String className = reflectionMethodDeclaration.getClassName();
+
+                        // If there are dots in the class name, assume the last part is the nested class name and ignore it for the path
+                        String[] classNameParts = className.split("\\.");
+                        if (classNameParts.length > 1) {
+                            className = classNameParts[0]; // Use only the top-level class name
+                        }
+
+                        String classPath = (packageName + "." + className).replace(".", "\\");
+                        String fullPath = baseMainPath + classPath + ".java";
+                        CompilationUnit methodCu = null;
+                        try {
+                            methodCu = PARSER.parse(new File(fullPath).getAbsoluteFile());
+                        } catch (FileNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                        calledMethodDeclaration = methodCu
+                                .findAll(MethodDeclaration.class)
+                                .stream()
+                                .filter(m -> m.getNameAsString()
+                                        .equals(reflectionMethodDeclaration.getName()))
+                                .findFirst()
+                                .get();
                     }
 
-                    String classPath = (packageName + "." + className).replace(".", "\\");
-                    String fullPath = baseMainPath + classPath + ".java";
-                    CompilationUnit methodCu = null;
-                    try {
-                        methodCu = PARSER.parse(new File(fullPath).getAbsoluteFile());
-                    } catch (FileNotFoundException e) {
-                        throw new RuntimeException(e);
+                    // If not true, then called method is probably from a file in some library.
+                    else {
+                        libFile = true;
                     }
-
-                    calledMethodDeclaration = methodCu
-                            .findAll(MethodDeclaration.class)
-                            .stream()
-                            .filter(m -> m.getNameAsString()
-                                    .equals(reflectionMethodDeclaration.getName()))
-                            .findFirst()
-                            .get();
-                }
-
-                // If not true, then called method is probably from a file in some java library.
-                else {
-                    javaLibFile = true;
                 }
             }
 
@@ -335,8 +401,8 @@ public class Parser {
             incrementMapValue(methodCalls, resolvedMethodDeclaration.getQualifiedName());
             incrementMapValue(packageAccesses, resolvedMethodDeclaration.getPackageName());
 
-            // Continue finding method calls recursively if the called method is not from a java library.
-            if (!javaLibFile) {
+            // Continue finding method calls recursively if the called method is not from a library.
+            if (!libFile) {
                 if (debug) System.out.println("METHOD INVOCATION: " + resolvedMethodDeclaration.getQualifiedName());
                 parsedMethod.incrementNumRecursiveMethodCalls(1); // increase non java lib method call stats
                 parseMethod(calledMethodDeclaration, depth + 1);
@@ -364,8 +430,10 @@ public class Parser {
             return;
         }
 
+        System.out.println(thrownException.getClass().getName() + ", " + thrownException.getMessage());
         for (StackTraceElement stackTraceElement : thrownException.getStackTrace()) {
             System.out.println(stackTraceElement.toString());
         }
+        System.out.println();
     }
 }
